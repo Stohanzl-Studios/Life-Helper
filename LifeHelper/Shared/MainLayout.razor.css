@@ -1,0 +1,18 @@
+﻿#app div main {
+    margin: 0;
+    height: 100vh;
+}
+
+.sidebar-wrapper {
+    float: left;
+    height: 100vh;
+}
+
+/*@media only screen and (max-width: 600px) {
+    .sidebar-wrapper {
+        height: 7vh;
+        position: absolute;
+        top: 0;
+        width: 100vh;
+    }
+}*/

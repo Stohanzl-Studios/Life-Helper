@@ -1,0 +1,126 @@
+﻿@page "/calculator"
+@using LifeHelper.Components.Calculator
+@using LifeHelper.Logic
+@using Logic.Calculator
+@using Logic.Interfaces
+@using SharedResources.Enums
+
+<PageTitle>Calculator</PageTitle>
+<div class="calculator-page">
+    <div class="calculator-container">
+        <div class="calculator-output" @onwheel="@(scroll => { })">
+            <div class="calculator-output-inner">
+                <h1>@ProblemColumn</h1>
+            </div>
+        </div>
+
+        <div class="calculator-buttons">
+            <button class="span-two action" @onmousedown="args => { if(args.Button == 1) ClearAll(true); else if(args.Button == 0) ClearAll(); }">AC</button>
+            <button class="action" @onclick="() => { ProblemColumn = ProblemColumn.Remove(ProblemColumn.Length == 0 ? 0 : ProblemColumn.Length-1);}"><img src="icons/backspace-icon.png" height="35" width="35"></button>
+            <button class="action" @onclick="() => { ShowHistory = !ShowHistory; }"><img src="icons/history-icon.png" height="30" width="30"></button>
+            <button class="operand" @onclick="@(() => { AddToProblemColumn('x');})">x</button>
+
+            <button class="number" @onclick="@(() => { ProblemColumn += "9";})">9</button>
+            <button class="number" @onclick="@(() => { ProblemColumn += "8";})">8</button>
+            <button class="number" @onclick="@(() => { ProblemColumn += "7";})">7</button>
+            <button class="number" @onclick="@(() => { ProblemColumn += "6";})">6</button>
+            <button class="operand" @onclick="@(() => { AddToProblemColumn('÷');})">÷</button>
+
+            <button class="number" @onclick="@(() => { ProblemColumn += "5";})">5</button>
+            <button class="number" @onclick="@(() => { ProblemColumn += "4";})">4</button>
+            <button class="number" @onclick="@(() => { ProblemColumn += "3";})">3</button>
+            <button class="number" @onclick="@(() => { ProblemColumn += "2";})">2</button>
+            <button class="operand" @onclick="@(() => { AddToProblemColumn('+');})">+</button>
+            <button class="number" @onclick="@(() => { ProblemColumn += "1";})">1</button>
+            <button class="number" @onclick="@(() => { ProblemColumn += "0";})">0</button>
+            <button class="number" @onclick="@(() => { AddToProblemColumn(',');})">,</button>
+            <button class="operand" @onclick="SolveMathProblem">=</button>
+            <button class="operand" @onclick="@(() => { AddToProblemColumn('-');})">-</button>
+        </div>
+        <button class="show-more" @onclick="() => { ShowAdvanced = !ShowAdvanced;}"><img style="transition: transform ease-in-out 0.75s; @(ShowAdvanced ? "transform: rotate(180deg)" : "");" src="icons/arrow-icon.png" height="30" width="30" /></button>
+    </div>
+    <div class="calculator-history @(!ShowHistory ? "history-disabled" : "")">
+        @foreach (IProblem problem in ProblemHistory)
+        {
+            <ProblemHistory Problem="problem" OnDelete="(sender, args) => { ProblemHistory.Remove(problem); base.StateHasChanged(); }" OnEdit="(sender, args) => { CurrentProblem = problem; }" OnLeftClick="(sender, args) => { ProblemColumn += problem.Serialize(true); base.StateHasChanged(); }" OnMiddleClick="(sender, args) => { ProblemColumn += problem.Serialize(); base.StateHasChanged(); }" />
+        }
+    </div>
+    <div class="calculator-advanced @(!ShowAdvanced ? "advanced-disabled" : "")" style="grid-column: span 5;">
+        <button class="operand" @onclick="@(() => { AddToProblemColumn('(');})">(</button>
+        <button class="operand" @onclick="@(() => { AddToProblemColumn(')');})">)</button>
+        <button class="operand" @onclick="@(() => { AddToProblemColumn('√');})">√x</button>
+        <button class="operand" @onclick="@(() => { AddToProblemColumn('²');})">x²</button>
+        <button class="operand" @onclick="@(() => { AddToProblemColumn('%');})">%</button>
+
+        @*        <button class="operand" @onclick="@(() => { AddToProblemColumn('<');})">@("<<")</button>
+        <button class="operand" @onclick="@(() => { AddToProblemColumn('>');})">@(">>")</button>*@
+    </div>
+</div>
+
+@code {
+    private string ProblemColumn { get; set; } = "";
+    private IProblem CurrentProblem { get; set; } = Core.CreateIProblem();
+    private List<IProblem> ProblemHistory { get; set; } = new List<IProblem>();
+
+    private bool _ShowHistory = false;
+    private bool ShowHistory
+    {
+        get { return _ShowHistory; }
+        set { _ShowHistory = value; base.StateHasChanged(); }
+    }
+
+
+    private bool _ShowAdvanced = false;
+    private bool ShowAdvanced
+    {
+        get { return _ShowAdvanced; }
+        set { _ShowAdvanced = value; base.StateHasChanged(); }
+    }
+
+    private void AddToProblemColumn(char value)
+    {
+        char previous = ProblemColumn.Length > 0 ? ProblemColumn[ProblemColumn.Length - 1] : ' ';
+        MathOperation valueOperation = EnumHelper.GetMathOperation(value);
+        MathOperation prevMathOp = EnumHelper.GetMathOperation(previous);
+        if (value == ',' && previous != ' ' && previous != ',' && prevMathOp == MathOperation.None)
+        {
+            string[] numbers = ProblemColumn.Split(new[] { '+', '-', '%', 'x', '÷' });
+            string currentNumber = numbers[numbers.Length - 1];
+            if (!currentNumber.Contains(','))
+                ProblemColumn += value;
+        }
+        else if (value == '(' && previous != ')' && (prevMathOp != MathOperation.None || previous == ' ' || previous == '('))
+            ProblemColumn += value;
+        else if (value == ')' && previous != ' ' && (prevMathOp == MathOperation.None || prevMathOp == MathOperation.Square))
+            ProblemColumn += value;
+        else if (valueOperation == MathOperation.None && value != ',' && value != ')' && value != '(')
+            ProblemColumn += value;
+        else if (valueOperation == MathOperation.SquareRoot && ((previous == '(' || previous == ' ') || prevMathOp != MathOperation.SquareRoot && previous != ')' && prevMathOp != MathOperation.Square && prevMathOp != MathOperation.None))
+            ProblemColumn += value;
+        else if (valueOperation == MathOperation.Square && prevMathOp == MathOperation.None && prevMathOp != MathOperation.Square && previous != ' ' && previous != '(')
+            ProblemColumn += value;
+        else if (valueOperation != MathOperation.None && ((prevMathOp == MathOperation.None && (previous != ')' || valueOperation != MathOperation.SquareRoot)) || (prevMathOp == MathOperation.Square && valueOperation != MathOperation.Square)) && previous != '(' && previous != ' ')
+            ProblemColumn += value;
+
+    }
+
+    private void SolveMathProblem(MouseEventArgs args)
+    {
+        CurrentProblem.Deserialize(ProblemColumn);
+        ProblemColumn = CurrentProblem.Serialize(true);
+        int found = ProblemHistory.FindIndex(x => x == CurrentProblem);
+        if (found < 0)
+            ProblemHistory.Add(CurrentProblem);
+        else
+            ProblemHistory[found] = CurrentProblem;
+        CurrentProblem = Core.CreateIProblem(new[] { Core.CreateIProblemValue(MathOperation.None, double.Parse(ProblemColumn)) });
+    }
+
+    private void ClearAll(bool history = false)
+    {
+        ProblemColumn = String.Empty;
+        CurrentProblem = Core.CreateIProblem();
+        if (history)
+            ProblemHistory.Clear();
+    }
+}

@@ -1,0 +1,63 @@
+﻿.sidebar-container {
+    height: 100%;
+    overflow: hidden;
+    width: 8vh;
+    border: none;
+    top: 0;
+    position: relative;
+    background-color: #1a5590;
+    transition: width ease-in-out 0.5s;
+    position: sticky;
+}
+
+    .sidebar-container:hover {
+        width: 27.5vh;
+        transition: width ease-in-out 0.5s;
+    }
+
+.sidebar-user {
+    height: 7vh;
+    background-color: #2166b6;
+    display: flex;
+    color: white;
+    white-space: nowrap;
+}
+
+    .sidebar-user h4 {
+        margin-left: 1vh;
+        align-self: center;
+        text-decoration: underline;
+        cursor: pointer;
+        text-align: center;
+        font-size: 2.5vh;
+        padding-top: 0.5vh;
+    }
+
+    .sidebar-user h5 {
+        margin-left: 1vh;
+        align-self: center;
+        padding-top: 0.5vh;
+        text-align: center;
+        font-size: 2vh;
+        margin-top: 0.5vh;
+    }
+
+#profile-icon {
+    align-self: center;
+    margin-left: 1.5vh;
+    margin-right: 1vh;
+    height: 5vh;
+    width: 5vh;
+    border-radius: 3vh;
+    cursor: pointer;
+    padding: 0.5vh;
+    border: 0.1vh solid rgba(255,255,255,0.1);
+}
+
+#logout-icon {
+    cursor: pointer;
+    height: 3.5vh;
+    width: 3.5vh;
+    text-align: center;
+    margin: auto;
+}

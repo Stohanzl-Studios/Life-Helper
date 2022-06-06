@@ -1,0 +1,23 @@
+﻿@using Logic
+@using static SharedResources.Constants
+@inject ILocalStorageService _LocalStorage
+@inject NavigationManager _NavigationManager
+@inherits LayoutComponentBase
+
+<div class="page">
+    <div class="sidebar-wrapper">
+        <Sidebar />
+    </div>
+    <main>
+        @Body
+    </main>
+</div>
+
+@code {
+    protected override Task OnInitializedAsync()
+    {
+        if (Core.UserManager.UserState == Logic.Enums.UserState.LoggedOut)
+            Core.UserManager.PersistentLogin(_LocalStorage, data => { base.StateHasChanged(); });
+        return base.OnInitializedAsync();
+    }
+}

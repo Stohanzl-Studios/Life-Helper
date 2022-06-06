@@ -1,0 +1,34 @@
+﻿@using static SharedResources.Constants
+@inject NavigationManager _NavigationManager
+
+<div class="sidebar-nav-link @(Selected ? "active" : "")" @onclick="OnClicked">
+    <img src="@Icon" />
+    <h4>@Title</h4>
+</div>
+
+@code {
+    [Parameter]
+    public bool Selected { get; set; }
+
+    [Parameter]
+    public string Title { get; set; }
+
+    [Parameter]
+    public string Icon { get; set; }
+
+    [Parameter]
+    public string To { get; set; }
+
+    [Parameter]
+    public EventHandler<MouseEventArgs> OnClick { get; set; }
+
+    private void OnClicked(MouseEventArgs args)
+    {
+        if (!To.Contains("http"))
+            _NavigationManager.NavigateTo(WebAddress + "/" + To);
+        else
+            _NavigationManager.NavigateTo(To);
+        if (OnClick != null)
+            OnClick.Invoke(this, args);
+    }
+}

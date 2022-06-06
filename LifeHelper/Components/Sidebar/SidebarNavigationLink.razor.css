@@ -1,0 +1,43 @@
+﻿.sidebar-nav-link {
+    overflow: hidden;
+    height: 7.5vh;
+    margin: 3vh 1.4vh 3vh 1.4vh;
+    color: white;
+    cursor: pointer;
+    border-radius: 1vh;
+    vertical-align: central;
+    display: flex;
+}
+
+    .sidebar-nav-link:hover {
+        background-color: #1862ae;
+    }
+
+    .sidebar-nav-link img {
+        height: 5vh;
+        width: 5vh;
+        display: inline;
+        border-radius: 1vh;
+        margin-right: 1vh;
+        align-self: center;
+    }
+
+    .sidebar-nav-link h4 {
+        display: inline;
+        align-self: center;
+        margin-left: 1vh;
+        margin-bottom: 0;
+        white-space: nowrap;
+        font-size: 2.5vh;
+    }
+
+.active {
+    border: 0.2vh solid white;
+    height: 6vh;
+}
+
+    .active img {
+        height: 4.5vh;
+        width: 4.5vh;
+        margin-left: 0.5vh;
+    }

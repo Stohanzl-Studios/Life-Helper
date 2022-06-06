@@ -1,0 +1,208 @@
+﻿@page "/"
+@page "/notes"
+@using LifeHelper.Components.Notepad
+@using LifeHelper.Logic
+@using LifeHelper.Logic.Enums
+@using SharedResources.Enums
+@using SharedResources.Interfaces.Data
+
+<PageTitle>Life Helper - Notter</PageTitle>
+
+<div class="notepad-page">
+    <div class="note-show-categories">
+        @if (Core.UserManager.UserState != UserState.LoggedOut)
+        {
+            @*<NoteShowingCategory Title="All" OnClick="(sender, args) => GetAllNotes()" Selected="State == ShowingState.All" />*@
+            <NoteShowingCategory Title="Browse" OnClick="(sender, args) => GetPublicNotes()" Selected="State == ShowingState.Browse" />
+            @*<NoteShowingCategory Title="Friends" OnClick="(sender, args) => GetFriendNotes()" Selected="State == ShowingState.Friends" />*@
+            <NoteShowingCategory Title="Own" OnClick="(sender, args) => GetUserNotes()" Selected="State == ShowingState.Own" />
+            <button class="btn-new-note" @onclick="@(() => {_EditingNote = Core.CreateNote("New Note", null, null, Visibility.Private); _EditingNote.CreationDate = DateTime.Now; base.StateHasChanged();})"><img id="add-note-icon" src="/icons/add-note-icon.png" />Add new Note</button>
+        }
+        else
+        {
+            <NoteShowingCategory Title="Browse" OnClick="(sender, args) => GetPublicNotes()" Selected="State == ShowingState.Browse" />
+        }
+    </div>
+
+    @if (Core.StateManager.ApplicationState == AppState.Loading)
+    {
+        //TODO: LOADING
+        <br />
+        <h1>Loading...</h1>
+    }
+    else
+    {
+        <div class="note-editor @_EditingNoteClass" @onclick="CloseEditor">
+            <div class="note-editor-container">
+                <Note Value="@(_EditingNote ?? Core.CreateNote("New Note", null, null, Visibility.Private))" OnClick="(sender, args) => {}" Action="@_EditingNoteClass" />
+            </div>
+        </div>
+        <div class="note-container scroll">
+            @foreach (INote note in Notes)
+            {
+                <Note Value="note" OnClick="(sender, note) => { _ActiveNote = (Note?)sender; _EditingNote = note; base.StateHasChanged(); }" OnVisibilityChange="(sender, note) => { SaveUserNote(note); }" OnDelete="(sender, note) => { _EditingNote = note; DeleteUserNote(); }" />
+            }
+        </div>
+    }
+</div>
+
+
+@code {
+    Note? _ActiveNote { get; set; }
+    IEnumerable<INote> Notes { get; set; } = Array.Empty<INote>();
+
+    INote? _EditingNote { get; set; } = null;
+    string _EditingNoteClass
+    {
+        get => _EditingNote != null ? (Core.UserManager.UserState != UserState.LoggedOut && _EditingNote.UID == Core.UserManager.CurrentUser.UID ? "editing" : "showing") : "disabled";
+    }
+
+    private enum ShowingState { Browse, Own }
+    ShowingState State { get; set; } = ShowingState.Own;
+
+    protected override Task OnInitializedAsync()
+    {
+        Core.UserManager.OnUserStateChanged += state =>
+        {
+            if (state == UserState.LoggedOut && State != ShowingState.Browse)
+            {
+                Notes = Array.Empty<INote>();
+                State = ShowingState.Browse;
+                Core.StateManager.ApplicationState = AppState.Loading;
+                Task.Delay(100).ContinueWith(data => GetPublicNotes(false, true));
+            }
+            base.StateHasChanged();
+        };
+        if (Notes.Count() == 0)
+            GetPublicNotes(false, true);
+        return base.OnInitializedAsync();
+    }
+
+    private void CloseEditor()
+    {
+        if (Core.UserManager.UserState != UserState.LoggedOut && _EditingNote != null && _EditingNote.UID == Core.UserManager.CurrentUser.UID)
+        {
+            SaveUserNote();
+            {
+                List<INote> NoteList = new List<INote>();
+                NoteList = Notes.ToList();
+                if (NoteList.FindIndex(x => x.NID == _EditingNote.NID) < 0)
+                    NoteList.Add(_EditingNote);
+                Notes = NoteList;
+            }
+            if (State != ShowingState.Browse)
+                Task.Delay(100).ContinueWith(task => GetUserNotes(false, true));
+        }
+        Core.StateManager.ApplicationState = AppState.Normal;
+        if (_ActiveNote != null)
+            _ActiveNote.Show();
+        _EditingNote = null;
+        base.StateHasChanged();
+    }
+
+    private void GetAllNotes()
+    {
+        GetPublicNotes(true);
+        GetFriendNotes(true);
+        GetUserNotes(true);
+        Core.StateManager.ApplicationState = AppState.Normal;
+        _EditingNote = null;
+        base.StateHasChanged();
+    }
+    private void GetPublicNotes(bool add = false, bool force = true)
+    {
+        if (State != ShowingState.Browse || Notes.Count() == 0 || force)
+        {
+            State = ShowingState.Browse;
+            Core.NoteManager.GetPublicNotes(noteResponse =>
+            {
+                if (!add && noteResponse.Result == Result.Success)
+                {
+                    try
+                    {
+                        IEnumerable<INote>? notes = noteResponse.Notes;
+                        Notes = notes;
+                        Core.StateManager.ApplicationState = AppState.Normal;
+                    }
+                    catch { }
+                    base.StateHasChanged();
+                }
+                else if (add && noteResponse.Result == Result.Success)
+                {
+                //TODO
+                }
+            });
+        }
+        _EditingNote = null;
+    }
+    private void GetFriendNotes(bool add = false)
+    {
+        //TODO
+    }
+    private void GetUserNotes(bool add = false, bool force = false)
+    {
+        if (State != ShowingState.Own || Notes.Count() == 0 || force)
+        {
+            State = ShowingState.Own;
+            Core.NoteManager.GetUserNotes(noteResponse =>
+            {
+                if (noteResponse.Result == Result.Success)
+                {
+                    try
+                    {
+                        IEnumerable<INote>? notes = noteResponse.Notes;
+                        Notes = notes;
+                        Core.StateManager.ApplicationState = AppState.Normal;
+                    }
+                    catch { }
+                    base.StateHasChanged();
+                }
+            });
+        }
+        _EditingNote = null;
+    }
+    private void SaveUserNote(INote? note = null)
+    {
+        if (_EditingNote != null)
+        {
+            Core.NoteManager.SaveUserNote(_EditingNote, noteResponse => { Core.StateManager.ApplicationState = AppState.Normal; });
+            if (State == ShowingState.Browse && _EditingNote.Visibility == Visibility.Private)
+            {
+
+                List<INote> NotesList = Notes.ToList();
+                NotesList.Remove(_EditingNote);
+                Notes = NotesList;
+            }
+            Core.StateManager.ApplicationState = AppState.Normal;
+            base.StateHasChanged();
+        }
+        else if (note != null)
+        {
+            Core.NoteManager.SaveUserNote(note, noteResponse => { Core.StateManager.ApplicationState = AppState.Normal; });
+            if (State == ShowingState.Browse && note.Visibility == Visibility.Private)
+            {
+
+                List<INote> NotesList = Notes.ToList();
+                NotesList.Remove(note);
+                Notes = NotesList;
+            }
+            Core.StateManager.ApplicationState = AppState.Normal;
+            base.StateHasChanged();
+        }
+    }
+    private void DeleteUserNote()
+    {
+        if (_EditingNote != null)
+        {
+            Core.NoteManager.DeleteUserNote(_EditingNote, response => { });
+            {
+                List<INote> NotesList = Notes.ToList();
+                NotesList.Remove(_EditingNote);
+                Notes = NotesList;
+            }
+            _EditingNote = null;
+            Core.StateManager.ApplicationState = AppState.Normal;
+            base.StateHasChanged();
+        }
+    }
+}

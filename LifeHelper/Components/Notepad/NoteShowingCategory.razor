@@ -1,0 +1,12 @@
+﻿<button class="btn-show-category @(Selected ? "selected" : "")" @onclick="args => OnClick.Invoke(this, args)">@Title</button>
+
+@code {
+    [Parameter]
+    public string Title { get; set; }
+
+    [Parameter]
+    public bool Selected { get; set; }
+
+    [Parameter]
+    public EventHandler<MouseEventArgs> OnClick { get; set; }
+}

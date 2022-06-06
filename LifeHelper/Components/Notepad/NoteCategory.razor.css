@@ -1,0 +1,22 @@
+﻿.note-category {
+    height: 2vh;
+    display: inline;
+    width: 6vh;
+    padding-top: 1.5vh;
+    padding-bottom: 1.5vh;
+    text-align: center;
+    font-size: small;
+    border: none;
+    display: inline;
+    border-radius: 2vh;
+    margin-bottom: auto;
+    margin-right: 1vh;
+    color: white;
+    background-color: #2166b6;
+    cursor: default;
+    z-index: 1;
+}
+
+.note-category:focus {
+    outline: none;
+}

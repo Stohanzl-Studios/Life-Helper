@@ -1,0 +1,91 @@
+﻿.user-auth {
+    text-align: center;
+    align-self: center;
+    justify-content: center;
+    height: 100vh;
+    display: flex;
+    overflow: hidden;
+}
+
+.user-auth-form-wrapper {
+    padding-top: 5vh;
+    align-self: center;
+    width: 45vh;
+    height: auto;
+    border-radius: 2.25vh;
+    box-shadow: 1.8vh 1.9vh 1.7vh 0.5vh rgba(0,0,0,0.62);
+    background-color: white;
+}
+
+    .user-auth-form-wrapper h1 {
+        font-weight: bold;
+        font-size: 5vh;
+    }
+
+.login-form span {
+    font-weight: 600;
+}
+
+.login-form-section {
+    margin-left: 5vh;
+    margin-right: 5vh;
+}
+
+    .login-form-section span {
+        margin-top: 4vh;
+        font-weight: 600;
+    }
+
+    .login-form-section.submit-form button {
+        margin-bottom: 1vh;
+    }
+
+    .login-form-section.remember-me {
+        margin-bottom: 8.5vh;
+        margin-top: 2vh;
+        float: left;
+        text-align: left;
+        justify-content: flex-start;
+        display: flex;
+        font-size: 1.75vh;
+    }
+
+        .login-form-section.remember-me span {
+            align-self: center;
+            vertical-align: central;
+            margin: 0;
+        }
+
+.validation-message {
+    text-align: center;
+}
+
+.register-form-section {
+    margin-left: 5vh;
+    margin-right: 5vh;
+}
+
+    .register-form-section span {
+        margin-top: 0.5vh;
+        font-weight: 600;
+    }
+
+    .register-form-section.submit-form button {
+        margin-bottom: 1vh;
+    }
+
+    .register-form-section.remember-me {
+        margin-bottom: 1.5vh;
+        margin-top: 1vh;
+        float: left;
+        text-align: left;
+        justify-content: flex-start;
+        display: flex;
+        font-size: 1.75vh;
+    }
+
+        .register-form-section.remember-me span {
+            align-self: center;
+            vertical-align: central;
+            margin: 0;
+        }

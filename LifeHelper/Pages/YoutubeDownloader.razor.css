@@ -1,0 +1,10 @@
+﻿.youtube-downloader {
+    height: 100vh;
+    justify-content: center;
+    text-align: center;
+    display: flex;
+}
+
+.youtube-downloader-container {
+    align-self: center;
+}

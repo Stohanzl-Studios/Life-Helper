@@ -1,0 +1,14 @@
+﻿@using SharedResources.Interfaces.Data
+
+<input class="note-category" value="@((Value.Categories ?? Array.Empty<string>())[i])" @onchange:stopPropagation="true" @onchange="@(args => { (Value.Categories ?? Array.Empty<string>())[i] = (string)args.Value; OnVisibilityChange.Invoke(this, Value); base.StateHasChanged(); })" @onmousedown:stopPropagation="true" @onmousedown="@(args => { if(args.Button == 1) { List<string> stringos = (Value.Categories ?? Array.Empty<string>()).ToList(); stringos.RemoveAt(i); Value.Categories = stringos.ToArray(); OnVisibilityChange.Invoke(this, Value); base.StateHasChanged(); } })">
+
+@code {
+    [Parameter]
+    public int i { get; set; } = 0;
+
+    [Parameter]
+    public INote Value { get; set; }
+
+    [Parameter]
+    public EventHandler<INote> OnVisibilityChange { get; set; }
+}

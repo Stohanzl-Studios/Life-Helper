@@ -1,0 +1,15 @@
+﻿.btn-show-category {
+    margin-right: 1vh;
+    border: none;
+    border-radius: 0.5vh;
+    background-color: transparent;
+    font-weight: 600;
+    padding: 0.75vh;
+    padding-left: 1.5vh;
+    padding-right: 1.5vh;
+}
+
+.selected {
+    background-color: #2166b6;
+    color: white;
+}

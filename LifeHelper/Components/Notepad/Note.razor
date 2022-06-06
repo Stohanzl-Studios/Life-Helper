@@ -1,0 +1,93 @@
+﻿@using LifeHelper.Logic
+@using LifeHelper.Logic.Enums
+@using SharedResources.Enums
+@using SharedResources.Interfaces.Data
+
+@if (Editing)
+{
+    <div class="note-viewer invisible">
+    </div>
+}
+else
+{
+    <div class="note-viewer @(String.IsNullOrEmpty(Action) ? "disabled" : Action)" @onclick:stopPropagation @onclick="() => { if(String.IsNullOrEmpty(Action)) {Editing = true; OnClick.Invoke(this, Value); base.StateHasChanged(); }}">
+
+        @if (!String.IsNullOrEmpty(Action))
+        {
+            @if (Action == "editing")
+            {
+                <input class="note-title" value="@Value.Title" @onchange="@(args => Value.Title = (string?)args.Value ?? "")">
+                <textarea type="text" wrap="soft" @onchange="args => Value.Content = (string?)args.Value">@(Value.Content ?? "")</textarea>
+            }
+            else
+            {
+                <p id="note-date">@((Value.CreationDate ?? DateTime.Now).ToString("HH:mm - dd MMMM, yyyy"))</p>
+                <h3 id="note-title">@Value.Title</h3>
+                <p>@Value.Content</p>
+            }
+        }
+        else
+        {
+            <div class="note-centered" @onclick:stopPropagation="true">
+                @if (Core.UserManager.UserState != UserState.LoggedOut && Core.UserManager.CurrentUser.UID == Value.UID)
+                {
+                    <img id="visibility" onmousedown="event.stopImmediatePropagation();" @onclick:stopPropagation="true" @onclick="@(() => { if(Core.UserManager.UserState != UserState.LoggedOut && Core.UserManager.CurrentUser.UID == Value.UID) { Value.Visibility = (Value.Visibility == Visibility.Public ? Visibility.Private : Visibility.Public); OnVisibilityChange.Invoke(this, Value); base.StateHasChanged(); }})" src="@(Value.Visibility == Visibility.Public ? "/icons/public-icon.png" : "/icons/private-icon.png")" />
+                    <p id="note-date">@(Value.CreationDate == null ? "??-??-????" : Value.CreationDate.Value.ToString("HH:mm - dd MMMM, yyyy"))</p>
+                    <img id="note-delete" @onclick:stopPropagation="true" @onclick="() => OnDelete(this, Value)" src="/icons/trash-icon.png" />
+                }
+                else
+                {
+                    <p id="note-date">@(Value.CreationDate == null ? "??-??-????" : Value.CreationDate.Value.ToString("HH:mm - dd MMMM, yyyy"))</p>
+                }
+            </div>
+            <h3 id="note-title">@Value.Title</h3>
+            <textarea contenteditable="false" id="note-content">@(Value.Content ?? "")</textarea>
+            <div class="note-categories" @onclick:stopPropagation="true">
+
+                @if (Core.UserManager.UserState != UserState.LoggedOut && Core.UserManager.CurrentUser.UID == Value.UID)
+                {
+                    @for (int i = 0; i < (Value.Categories ?? Array.Empty<string>()).Length; i++)
+                    {
+                        <NoteCategory OnVisibilityChange="(sender, note) => { Value = note; OnVisibilityChange.Invoke(this, note); base.StateHasChanged(); }" i="@i" Value="@Value"/>
+                }
+                    <p class="note-category" @onclick:stopPropagation="true" @onclick="@(() => { List<string> stringos = (Value.Categories ?? Array.Empty<string>()).ToList(); stringos.Add(""); Value.Categories = stringos.ToArray(); OnVisibilityChange.Invoke(this, Value); base.StateHasChanged(); })">+</p>
+                }
+                else
+                {
+                    @foreach (string category in Value.Categories ?? Array.Empty<string>())
+                    {
+                        <p class="note-category" @onclick:stopPropagation>@category</p>
+                    }
+                }
+            </div>
+        }
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string Action { get; set; } = "";
+
+    [Parameter]
+    public INote Value { get; set; } = Core.CreateNote("New Note", null, null, Visibility.Private);
+
+    List<string> PrevCategories { get; set; } = new List<string>();
+
+    [Parameter]
+    public EventHandler<INote> OnClick { get; set; }
+
+    [Parameter]
+    public EventHandler<INote> OnVisibilityChange { get; set; }
+
+    [Parameter]
+    public EventHandler<INote> OnDelete { get; set; }
+
+    public bool Editing { get; set; } = false;
+
+    public void Show() => Editing = false;
+
+    private void SetValue(string value)
+    {
+        
+    }
+}

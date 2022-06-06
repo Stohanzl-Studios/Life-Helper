@@ -1,0 +1,22 @@
+﻿@page "/youtube-downloader/{YoutubeVideoID?}"
+@page "/youtube/{YoutubeVideoID?}"
+
+@using VideoLibrary
+
+<div class="youtube-downloader">
+    <div class="youtube-downloader-container">
+        <h3>YoutubeDownloader - @YoutubeVideoID</h3>
+        <input type="text" @bind-value="YoutubeVideoID" />
+    </div>
+</div>
+
+
+@code {
+    [Parameter]
+    public string? YoutubeVideoID { get; set; } = "";
+
+    private void OnInputChange()
+    {
+        
+    }
+}

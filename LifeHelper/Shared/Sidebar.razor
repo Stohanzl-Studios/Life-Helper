@@ -1,0 +1,36 @@
+﻿@using static SharedResources.Constants
+@using LifeHelper.Components.Sidebar
+@using LifeHelper.Logic
+@using LifeHelper.Logic.Enums
+@inject NavigationManager _navigationManager
+@inject ILocalStorageService _LocalStorageService
+
+<div class="sidebar-container">
+    <div class="sidebar-user">
+        <img id="profile-icon"src="/icons/user-icon.png" class="sidebar-user-icon" @onclick="@(Core.UserManager.UserState == UserState.LoggedOut ? () => _navigationManager.NavigateTo(WebAddress + "/login") : () => _navigationManager.NavigateTo(WebAddress + "/notes"))">
+        @if(Core.UserManager.UserState == UserState.LoggedOut)
+        {
+            <h4 @onclick="@(() => _navigationManager.NavigateTo(WebAddress + "/login"))">Login</h4>
+        }
+        else
+        {
+            <h5>@Core.UserManager.CurrentUser.Username</h5>
+            <img id="logout-icon" @onclick="@(() => Core.UserManager.Logout(state => { base.StateHasChanged(); }, _LocalStorageService))" src="/icons/logout-icon.png"></img>
+        }
+    </div>
+    @*<SidebarNavigationLink Title="Home" Icon="/icons/home-icon.png" To="home" Selected="false"/>*@
+    <SidebarNavigationLink Title="Notes" Icon="/icons/notes-icon.png" To="notes"/>
+    <SidebarNavigationLink Title="Calculator" Icon="/icons/calc-icon.png" To="calculator"/>
+    @*<SidebarNavigationLink Title="Youtube finder" Icon="/icons/youtube-icon.png" To="youtube-downloader"/>*@
+    <SidebarNavigationLink Title="Patrik Stohanzl" Icon="/icons/stohanzl-studios-icon.png" To="https://github.com/organizations/Stohanzl-Studios"/>
+</div>
+
+@code {
+    public Sidebar()
+    {
+        Core.UserManager.OnUserStateChanged += state =>
+        {
+            base.StateHasChanged();
+        };
+    }
+}

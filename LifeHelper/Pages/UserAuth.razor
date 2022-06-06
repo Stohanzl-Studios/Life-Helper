@@ -1,0 +1,156 @@
+﻿@page "/login"
+@page "/register"
+
+@using static SharedResources.Constants
+@using Blazored.SessionStorage
+@using LifeHelper.Forms
+@using LifeHelper.Logic
+@using SharedResources.Enums
+@using SharedResources.Interfaces.Requests
+@inject NavigationManager _navigationManager
+@inject ILocalStorageService _localStorageService
+@inject ISessionStorageService _sessionStorageService
+
+<div class="user-auth">
+    <div class="user-auth-form-wrapper @(_ShowLogin ? "" : "register")">
+
+        @if (_ShowLogin)
+        {
+            <PageTitle>Life Helper - Login</PageTitle>
+            <h1>Login</h1>
+            <EditForm Model="@_LoginForm" OnValidSubmit="OnValidLoginSubmit" class="login-form">
+                <DataAnnotationsValidator />
+                <div class="login-form-inner">
+                    <div class="login-form-section email">
+                        <span class="input-title">Email</span>
+                        <InputText type="email" placeholder="Email..." @bind-Value="_LoginForm.Email" DisplayName="Email" />
+                        <ValidationMessage For="() => _LoginForm.Email" />
+                    </div>
+                    <div class="login-form-section password">
+                        <span class="input-title">Password</span>
+                        <InputText placeholder="Password..." type="password" @bind-Value="_LoginForm.Password" DisplayName="Password" />
+                        <ValidationMessage For="() => _LoginForm.Password" />
+                    </div>
+                    <div class="login-form-section remember-me">
+                        <span>Remember me</span>
+                        <InputCheckbox @bind-Value="_RememberMe" DisplayName="Remember Me" />
+                    </div>
+                    <div class="login-form-section submit-form">
+                        <p class="validation-message">@_FormError</p>
+                        <button class="btn-primary" type="submit">Login</button>
+                        <p>Don't have an account? <a href="/register" @onclick:stopPropagation @onclick="@(() => { _navigationManager.NavigateTo("/register"); _ShowLogin = false; _FormError = null; base.StateHasChanged(); })">Register</a></p>
+                    </div>
+
+                </div>
+            </EditForm>
+        }
+        else
+        {
+            <PageTitle>Life Helper - Register</PageTitle>
+            <h1>Register</h1>
+            <EditForm Model="@_RegisterForm" OnValidSubmit="OnValidRegisterSubmit" class="register-form">
+                <DataAnnotationsValidator />
+                <div class="register-form-section username">
+                    <span class="input-title">Username</span>
+                    <InputText @bind-Value="_RegisterForm.Username" title="Username" type="text" placeholder="Username..." DisplayName="Username" />
+                    <ValidationMessage For="() => _RegisterForm.Username" />
+                </div>
+                <div class="register-form-section email">
+                    <span class="input-title">Email</span>
+                    <InputText @bind-Value="_RegisterForm.Email" DisplayName="Email" type="email" placeholder="Email..." />
+                    <ValidationMessage For="() => _RegisterForm.Email" />
+                </div>
+                <div class="register-form-section password">
+                    <span class="input-title">Password</span>
+                    <InputText type="password" @bind-Value="_RegisterForm.Password" DisplayName="Password" placeholder="Password..." />
+                    <ValidationMessage For="() => _RegisterForm.Password" />
+                </div>
+                <div class="register-form-section password-check">
+                    <span class="input-title">Password again</span>
+                    <InputText type="password" @bind-Value="_RegisterForm.VerifyPassword" DisplayName="Password again" placeholder="Password again..." />
+                    <ValidationMessage For="() => _RegisterForm.VerifyPassword" />
+                </div>
+                <div class="register-form-section remember-me">
+                    <span>Remember me</span>
+                    <InputCheckbox @bind-Value="_RememberMe" DisplayName="Remember Me" />
+                </div>
+                <div class="register-form-section submit-form">
+                    @if (_FormError != null)
+                    {
+                        <p class="validation-message">@_FormError</p>
+                    }
+                    <button class="btn-primary" type="submit">Register</button>
+                    <p>Don't have an account? <a href="/login" @onclick:preventDefault @onclick="@(() => { _navigationManager.NavigateTo("/login"); _ShowLogin = true; _FormError = null; base.StateHasChanged(); })">Login</a></p>
+                </div>
+
+            </EditForm>
+        }
+    </div>
+</div>
+
+@code {
+    private LoginFormModel _LoginForm { get; set; } = new LoginFormModel();
+    private RegisterFormModel _RegisterForm { get; set; } = new RegisterFormModel();
+    private bool _RememberMe { get; set; } = true;
+    private bool _ShowLogin { get; set; }
+    private string? _FormError { get; set; } = null;
+    private bool _PlayAnim { get; set; } = false;
+
+    protected override Task OnInitializedAsync()
+    {
+        Core.UserManager.OnUserStateChanged += state =>
+        {
+            if (_navigationManager.Uri.Contains("login") || _navigationManager.Uri.Contains("register"))
+            {
+                if (state != Logic.Enums.UserState.LoggedOut)
+                    _navigationManager.NavigateTo(WebAddress + "/notes");
+            }
+        };
+        return base.OnInitializedAsync();
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (Core.UserManager.UserState != Logic.Enums.UserState.LoggedOut)
+            _navigationManager.NavigateTo(WebAddress + "/notes");
+        else
+        {
+            _ShowLogin = _navigationManager.Uri.Contains("login");
+            base.StateHasChanged();
+        }
+        base.OnParametersSet();
+    }
+
+    private void OnValidLoginSubmit()
+    {
+        Core.UserManager.Login((ILoginRequest)Core.CreateRequest<ILoginRequest>(_LoginForm.Email, _LoginForm.Password), data =>
+        {
+            if (data.Result == Result.Success)
+            {
+                _navigationManager.NavigateTo(WebAddress + "/notes");
+                base.StateHasChanged();
+            }
+            else
+            {
+                _FormError = data.Error;
+                base.StateHasChanged();
+            }
+        }, _localStorageService, _RememberMe);
+    }
+    private void OnValidRegisterSubmit()
+    {
+        Core.UserManager.Register((IRegisterRequest)Core.CreateRequest<IRegisterRequest>(_RegisterForm.Username, _RegisterForm.Email, _RegisterForm.Password), data =>
+        {
+            if (data.Result == Result.Success)
+            {
+                _navigationManager.NavigateTo(WebAddress + "/notes");
+                base.StateHasChanged();
+            }
+            else
+            {
+                _FormError = data.Error;
+                base.StateHasChanged();
+            }
+        }, _localStorageService, _RememberMe);
+    }
+    }

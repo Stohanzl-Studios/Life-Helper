@@ -1,0 +1,50 @@
+﻿@*@page "/account"*@
+@using LifeHelper.Logic
+@using LifeHelper.Logic.Enums
+@using SharedResources.Enums
+@using static SharedResources.Constants
+@inject NavigationManager _NavigationManager
+@inject ILocalStorageService _LocalStorage
+
+<div style="align-self: center;">
+    @if (Core.StateManager.ApplicationState != AppState.Loading)
+    {
+        <h3>Welcome @Core.UserManager.CurrentUser.Username</h3>
+        <h3>@Core.UserManager.CurrentUser.AccessToken</h3>
+        <button @onclick="() => base.StateHasChanged()">Refresh</button>
+    }
+    else
+    {
+        <h1>Loading</h1>
+    }
+</div>
+
+
+@code {
+    protected override Task OnInitializedAsync()
+    {
+        Core.UserManager.OnUserStateChanged += state => { if (state == UserState.LoggedOut && _NavigationManager.Uri.Contains("account")) _NavigationManager.NavigateTo(WebAddress + "/home"); base.StateHasChanged(); };
+        Core.UserManager.OnUserLoggedIn += data =>
+        {
+            if (_NavigationManager.Uri.Contains("account"))
+            {
+                if (data.Result == Result.Success)
+                    base.StateHasChanged();
+                else
+                    _NavigationManager.NavigateTo("login");
+            }
+        };
+        if (Core.UserManager.UserState == UserState.LoggedOut)
+        {
+            Core.StateManager.ApplicationState = AppState.Loading;
+            Core.UserManager.CheckPersistent(_LocalStorage, valid =>
+            {
+                if (!valid && Core.UserManager.UserState == UserState.LoggedOut)
+                    _NavigationManager.NavigateTo("login");
+                Core.StateManager.ApplicationState = AppState.Normal;
+            });
+        }
+
+        return base.OnInitializedAsync();
+    }
+}

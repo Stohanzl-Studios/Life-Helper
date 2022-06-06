@@ -1,0 +1,33 @@
+﻿@using Logic.Interfaces
+
+<div class="problem-history@(IsEdited ? " selected" : "")" @onmouseover="() => { _ShowActionColumn = true; base.StateHasChanged(); }" @onmouseout="() => { _ShowActionColumn = false; base.StateHasChanged(); }">
+    <div class="problem-history-action-bar@(_ShowActionColumn ? "" : " disabled")">
+        <button @onclick="args => OnEdit.Invoke(this, args)"><img src="icons/edit-icon.png" height="15" width="15" /></button>
+        <button @onclick="args => OnDelete.Invoke(this, args)">x</button>
+    </div>
+    <div style="overflow: hidden; display: inline;">
+        <div class="problem-history-values">
+            <p @onclick="args => OnMiddleClick.Invoke(this, args)">@Problem.Serialize()</p>
+            <h2 @onclick="args => OnLeftClick.Invoke(this, args)">@Problem.Solve()</h2>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public IProblem Problem { get; set; }
+    [Parameter]
+    public EventHandler OnLeftClick { get; set; }
+    [Parameter]
+    public EventHandler OnMiddleClick { get; set; }
+
+    [Parameter]
+    public EventHandler OnEdit { get; set; }
+    [Parameter]
+    public EventHandler OnDelete { get; set; }
+
+    [Parameter]
+    public bool IsEdited { get; set; }
+
+    private bool _ShowActionColumn { get; set; } = false;
+}
